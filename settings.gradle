@@ -1,0 +1,2 @@
+rootProject.name = "Step_counter"
+include ':app'
