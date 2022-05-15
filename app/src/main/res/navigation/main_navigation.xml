@@ -2,12 +2,20 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_navigation.xml"
-    app:startDestination="@id/mainFragment">
+    app:startDestination="@id/get_started">
 
     <fragment
-        android:id="@+id/mainFragment"
+        android:id="@+id/get_started"
+        android:name="com.example.step_counter.ui.main.GetStartedFragment"
+        android:label="get_started_fragment"
+        tools:layout="@layout/get_started_fragment" >
+        <action
+            android:id="@+id/action_get_started_to_main"
+            app:destination="@id/main" />
+    </fragment>
+    <fragment
+        android:id="@+id/main"
         android:name="com.example.step_counter.ui.main.MainFragment"
         android:label="main_fragment"
-        tools:layout="@layout/get_started_fragment" />
+        tools:layout="@layout/main_fragment" />
 </navigation>
