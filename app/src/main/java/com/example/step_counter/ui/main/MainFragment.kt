@@ -8,6 +8,7 @@ import android.hardware.SensorManager
 import android.os.Bundle
 import android.os.Environment
 import android.os.SystemClock
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +18,14 @@ import androidx.fragment.app.Fragment
 import com.example.step_counter.R
 import com.example.step_counter.databinding.MainFragmentBinding
 import kotlinx.android.synthetic.main.main_fragment.*
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody.Part.Companion.createFormData
+import okhttp3.RequestBody.Companion.asRequestBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.util.*
 
@@ -69,9 +78,14 @@ class MainFragment : Fragment(), SensorEventListener {
 
         binding.resetButton.setOnClickListener {
 
-            val file = File(context?.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "acc_data.csv")
+            val file =
+                File(context?.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "acc_data.csv")
 
-            Toast.makeText(activity, xAccVector.size.toString() + " " + yAccVector.size.toString() + " " + zAccVector.size.toString(), Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                activity,
+                xAccVector.size.toString() + " " + yAccVector.size.toString() + " " + zAccVector.size.toString(),
+                Toast.LENGTH_LONG
+            ).show()
 
             binding.timer.stop()
             pauseOffset = 0
@@ -81,12 +95,33 @@ class MainFragment : Fragment(), SensorEventListener {
 
             file.printWriter().use { out ->
                 for (i in 0 until xAccVector.size) {
-                    out.println(String.format("%.2f, %.2f, %.2f, %d", xAccVector[i], yAccVector[i], zAccVector[i], timeVector[i]))
+                    out.println(
+                        String.format(
+                            "%.2f, %.2f, %.2f, %d",
+                            xAccVector[i],
+                            yAccVector[i],
+                            zAccVector[i],
+                            timeVector[i]
+                        )
+                    )
                 }
             }
-            val fileExist = file.exists()
-            binding.accText.text = fileExist.toString()
-
+            uploadFile(file)
+//            val TEXT_CSV_TYPE = "text/csv".toMediaTypeOrNull()
+//            val client = OkHttpClient()
+//            val requestBody: RequestBody = file.asRequestBody(TEXT_CSV_TYPE)
+//            val multiPartBody: MultipartBody.Part =
+//                createFormData("acc_data", file.name, requestBody)
+//            val request: Request = Request.Builder()
+//                .url("https://192.168.1.25:2137/get_acc_data/")
+//                .post(requestBody)
+//                .build();
+//            val response: Response = client.newCall(request).execute()
+//            if (!response.isSuccessful) {
+//                Toast.makeText(activity, "erroooooor", Toast.LENGTH_SHORT).show()
+//            } else {
+//                Toast.makeText(activity, "file send", Toast.LENGTH_SHORT).show()
+//            }
         }
 
         return binding.root
@@ -109,6 +144,33 @@ class MainFragment : Fragment(), SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         return
+    }
+
+    private fun uploadFile(file: File) {
+
+        val DjangoSite: String = "http://192.168.1.25:2137/"
+        val retrofit: Retrofit = Retrofit.Builder()
+            .baseUrl(DjangoSite)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val postApi: FileUploadService = retrofit.create(FileUploadService::class.java)
+
+        val requestBody: RequestBody = file.asRequestBody("text/csv".toMediaTypeOrNull())
+        val multiPartBody: MultipartBody.Part =
+            createFormData("acc_data", file.getName(), requestBody)
+        val call: Call<RequestBody> = postApi.upload(multiPartBody)
+
+        call.enqueue(object : Callback<RequestBody> {
+            override fun onResponse(call: Call<RequestBody?>?, response: retrofit2.Response<RequestBody?>?) {
+                Log.d("good", "good")
+            }
+
+            override fun onFailure(call: Call<RequestBody?>?, t: Throwable?) {
+                Log.d("fail", "fail")
+            }
+        })
+
     }
 
 
