@@ -1,0 +1,239 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Steps counter</title>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.js"></script>
+
+        <style>
+            /* Fix table head */
+            .tableFixHead    { overflow: auto; height: 300px; }
+            .tableFixHead th { position: sticky; top: 0; }
+
+            /* Just common table stuff. */
+            .tableFixHead table  { border-collapse: collapse; width: 100%; }
+            .tableFixHead th, td { padding: 4px 16px; }
+            .tableFixHead th     { background:#eee; }
+
+            .styled-table {
+                border-collapse: collapse;
+                margin: 25px 0;
+                font-size: 0.9em;
+                font-family: sans-serif;
+                min-width: 400px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            }
+
+            .styled-table thead tr {
+                background-color: #009879;
+                color: #ffffff;
+                text-align: left;
+            }
+
+            .styled-table th,
+            .styled-table td {
+                padding: 12px 15px;
+            }
+
+            .styled-table tbody tr {
+                border-bottom: 1px solid #dddddd;
+            }
+
+            .styled-table tbody tr:nth-of-type(even) {
+                background-color: #f3f3f3;
+            }
+
+            .styled-table tbody tr:last-of-type {
+                border-bottom: 2px solid #009879;
+            }
+
+            .item_header { grid-area: header; }
+            .item_left { grid-area: left; }
+            .item_file { grid-area: file; }
+            .item_results { grid-area: results; }
+            .item_data { grid-area: data; }
+            .item_main { grid-area: main; }
+            .item_right { grid-area: right; }
+
+            .grid-container {
+                display: grid;
+                grid-template-areas:
+                    'header header header header'
+                    'left file file right'
+                    'left results results right'
+                    'left data data right'
+                    'left main main right';
+                gap: 10px;
+                background-color: #FFC7D2;
+                padding: 10px;
+            }
+
+            .grid-container > div {
+                background-color: rgba(255, 255, 255, 0.8);
+                text-align: center;
+                padding: 20px 0;
+                font-size: 30px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="grid-container">
+            <div class="item_header">Steps counter</div>
+            <div class="item_right" style="width: 300px; background-color: rgba(255, 255, 255, 0);"></div>
+            <div class="item_left" style="width: 300px; background-color: rgba(255, 255, 255, 0);"></div>
+            
+            <div class="item_file">
+                <div style="padding: 20px;">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <select name="selected_file">
+                            {% for file in files_list %}
+                                {% if file ==  filename %}
+                                    <option selected>{{ file }}</option>
+                                {% else %}
+                                    <option>{{ file }}</option>
+                                {% endif %}
+
+                            {% endfor %}
+                        </select>
+                        <button type="submit">Select file</button>
+                    </form>            
+                </div>
+            </div> 
+            
+            <div class="item_results">
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Axis</th>
+                            <th>Mean</th>
+                            <th>Deviation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>X</td>
+                            <td>{{ mean_x }}</td>
+                            <td>{{ odchylenie_x }}</td>
+                        </tr>
+                        <tr>
+                            <td>Y</td>
+                            <td>{{ mean_y }}</td>
+                            <td>{{ odchylenie_y }}</td>
+                        </tr>
+                        <tr>
+                            <td>Z</td>
+                            <td>{{ mean_z }}</td>
+                            <td>{{ odchylenie_y }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="item_data">
+                <div class="tableFixHead">
+                    <table>
+                    <thead>
+                        <tr><th>Time</th><th>X</th><th>Y</th><th>Z</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for athlete in dataset_all %}
+                            <tr><td>{{ athlete.0 }}</td><td>{{ athlete.1 }}</td><td>{{ athlete.2 }}</td><td>{{ athlete.3 }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>                    
+                </div>
+
+            </div>
+
+            <div class="item_main">
+                <!-- <div class="chart-container" style="position: relative; height:800px; width:800px"> -->
+                    <canvas id="myChart" width="400px" height="400px"></canvas>
+                <!-- </div> -->
+            </div>
+        </div>
+    <script>
+        const ctx = document.getElementById('myChart');
+
+        const labels = [
+            {% for athlete in dataset_time %} {{ athlete }} , {% endfor %}
+        ];
+
+
+        const datapointsX = [
+            {% for athlete in dataset_x %} {{ athlete }} , {% endfor %}
+        ];
+
+        const datapointsY = [
+            {% for athlete in dataset_y %} {{ athlete }} , {% endfor %}
+        ];
+
+        const datapointsZ = [
+            {% for athlete in dataset_z %} {{ athlete }} , {% endfor %}
+        ];
+
+        const data = {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'X',
+                    data: datapointsX,
+                    borderColor: 'rgb(255, 0, 0)',
+                    fill: false,
+                    tension: 0.4
+                },
+                {
+                    label: 'Y',
+                    data: datapointsY,
+                    borderColor: 'rgb(0, 255, 0)',
+                    fill: false,
+                    tension: 0.4
+                },
+                {
+                    label: 'X',
+                    data: datapointsZ,
+                    borderColor: 'rgb(0, 0, 255)',
+                    fill: false,
+                    tension: 0.4
+                }
+            ]
+        };
+
+        const myChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                // responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Acceleration data from {{ filename }}' 
+                    },
+                },
+                interaction: {
+                    intersect: false,
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Acceleration'
+                        },
+                        suggestedMin: -10,
+                        suggestedMax: 10
+                    }
+                }
+            },
+        });
+    </script>
+
+  </body>
+</html>
