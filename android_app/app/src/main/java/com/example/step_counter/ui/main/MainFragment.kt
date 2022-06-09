@@ -63,10 +63,6 @@ class MainFragment : Fragment(), SensorEventListener {
         sensorManager = activity?.getSystemService(SENSOR_SERVICE) as SensorManager
         binding.accNumber.text = 0.toString()
 
-        djangoServer = if(binding.ipTextInput.text.toString() != "IP address..."){
-            binding.ipTextInput.text.toString()
-        } else "192.168.1.25"
-
 
         binding.startButton.setOnClickListener {
             xAccVector.clear()
@@ -94,6 +90,10 @@ class MainFragment : Fragment(), SensorEventListener {
             previousTotalSteps = totalSteps
             binding.accNumber.text = 0.toString()
             sensorManager!!.unregisterListener(this)
+
+            djangoServer = if(binding.ipTextInput.text.toString() != "IP address..."){
+                binding.ipTextInput.text.toString()
+            } else "192.168.1.25"
 
             var djangoSite = "http://$djangoServer:2137/"
 
