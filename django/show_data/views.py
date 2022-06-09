@@ -6,6 +6,9 @@ import csv
 import numpy
 from .forms import SelectedFile
 
+from step_counter.preprocessing import magnituda, filtering, find_peak
+
+
 directory_data_path = os.getcwd() + '\\acc_data_dir\\'
 
 
@@ -65,6 +68,17 @@ def index(request):
         odchylenie_y = numpy.std(list_y, ddof=1)
         odchylenie_z = numpy.std(list_z, ddof=1)
 
+
+        arr_x = numpy.array(list_x)
+        arr_y = numpy.array(list_y)
+        arr_z = numpy.array(list_z)
+        dane = numpy.vstack((arr_x,arr_y,arr_z))
+        dane = dane.T
+        magnitude = magnituda(dane)
+        dane_po_filtracji = filtering(magnitude,12,500,4)
+        peaks = find_peak(dane_po_filtracji)
+        liczba_krokow = len(peaks)
+
     context = {
         'dataset_time': list_time,
         'dataset_x': list_x,
@@ -78,7 +92,8 @@ def index(request):
         'odchylenie_z': odchylenie_z,
         'dataset_all': all_data,
         'filename': filename,
-        'files_list': files_list
+        'files_list': files_list,
+        'step_count': liczba_krokow
     }
 
     return render(request, 'show_data/index.html', context)

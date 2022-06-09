@@ -7,49 +7,28 @@
 
         <style>
             /* Fix table head */
-            .tableFixHead    { overflow: auto; height: 300px; }
+            .tableFixHead    { overflow: auto; height: 400px; }
             .tableFixHead th { position: sticky; top: 0; }
 
             /* Just common table stuff. */
-            .tableFixHead table  { border-collapse: collapse; width: 100%; }
+            .tableFixHead table  { border-collapse: separate; width: 100%; }
             .tableFixHead th, td { padding: 4px 16px; }
             .tableFixHead th     { background:#eee; }
 
-            .styled-table {
-                border-collapse: collapse;
-                margin: 25px 0;
-                font-size: 0.9em;
-                font-family: sans-serif;
-                min-width: 400px;
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-            }
+            /* Fix table head */
+            .tableFixHead_1    { overflow: auto; height: auto; }
+            .tableFixHead_1 th { position: sticky; top: 0; }
 
-            .styled-table thead tr {
-                background-color: #009879;
-                color: #ffffff;
-                text-align: left;
-            }
+            /* Just common table stuff. */
+            .tableFixHead_1 table  { border-collapse: separate; width: 100%; }
+            .tableFixHead_1 th, td { padding: 4px 16px; }
+            .tableFixHead_1 th     { background:#eee; }
 
-            .styled-table th,
-            .styled-table td {
-                padding: 12px 15px;
-            }
 
-            .styled-table tbody tr {
-                border-bottom: 1px solid #dddddd;
-            }
-
-            .styled-table tbody tr:nth-of-type(even) {
-                background-color: #f3f3f3;
-            }
-
-            .styled-table tbody tr:last-of-type {
-                border-bottom: 2px solid #009879;
-            }
-
-            .item_header { grid-area: header; }
+            .item_header { grid-area: header; font-weight: bold}
             .item_left { grid-area: left; }
             .item_file { grid-area: file; }
+            .item_number { grid-area: step_number; }
             .item_results { grid-area: results; }
             .item_data { grid-area: data; }
             .item_main { grid-area: main; }
@@ -60,11 +39,12 @@
                 grid-template-areas:
                     'header header header header'
                     'left file file right'
+                    'left step_number step_number right'
                     'left results results right'
                     'left data data right'
                     'left main main right';
                 gap: 10px;
-                background-color: #FFC7D2;
+                background-color: rgb(247, 240, 255);
                 padding: 10px;
             }
 
@@ -99,10 +79,13 @@
                         <button type="submit">Select file</button>
                     </form>            
                 </div>
-            </div> 
+            </div>
+
+            <div class="item_number">Number of steps: {{ step_count }}</div>
             
             <div class="item_results">
-                <table class="styled-table">
+                <div class="tableFixHead_1">
+                    <table>
                     <thead>
                         <tr>
                             <th>Axis</th>
@@ -127,7 +110,8 @@
                             <td>{{ odchylenie_y }}</td>
                         </tr>
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </div>
 
             <div class="item_data">
@@ -143,7 +127,6 @@
                     </tbody>
                     </table>                    
                 </div>
-
             </div>
 
             <div class="item_main">
